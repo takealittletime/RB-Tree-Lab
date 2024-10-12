@@ -3,20 +3,20 @@
 #include <stdlib.h>
 
 //tmp/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef enum { RBTREE_RED, RBTREE_BLACK } color_t;
+// typedef enum { RBTREE_RED, RBTREE_BLACK } color_t;
 
-typedef int key_t;
+// typedef int key_t;
 
-typedef struct node_t {
-  color_t color;
-  key_t key;
-  struct node_t *parent, *left, *right;
-} node_t;
+// typedef struct node_t {
+//   color_t color;
+//   key_t key;
+//   struct node_t *parent, *left, *right;
+// } node_t;
 
-typedef struct {
-  node_t *root;
-  node_t *nil;  // for sentinel
-} rbtree;
+// typedef struct {
+//   node_t *root;
+//   node_t *nil;  // for sentinel
+// } rbtree;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 rbtree *new_rbtree(void) {
@@ -25,7 +25,7 @@ rbtree *new_rbtree(void) {
   // if rbtree is created, initialize its root node and nil node.
   if (p != NULL)
   {
-    p->nil = (node_t*)calloc(1,sizeof(rbtree));
+    p->nil = (node_t*)calloc(1,sizeof(node_t));
     p->nil->color = RBTREE_BLACK;
     p->root = p->nil;
   }
@@ -39,14 +39,45 @@ void delete_rbtree(rbtree *t) {
 }
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
-  // TODO: implement insert
-  node_t tmp;
-  tmp.color = RBTREE_RED;
-  tmp.key = key;
+  // create 'new node z' and fill it red
+  node_t* z = (node_t*)calloc(1, sizeof(node_t));
+  z->color = RBTREE_RED;
+  z->key = key;
+  z->left = t->nil;
+  z->right = t->nil;
+  z->parent = t->nil;
 
-  if (t->root == NULL){
+  // x node is for comparing, and y node will be parent node of z
+  node_t* x = t->root;
+  node_t* y = t->nil;
 
+  // move node x to right place
+  while (x != t->nil)
+  {
+    y = x;
+    if (z->key < x->key)
+    {
+      x = x->left;
+    }
+    else
+    {
+      x = x->right;
+    }
   }
+
+  // if tree was vacant
+  z->parent = y;
+  if (y == t->nil)
+    t->root = z;
+
+  else if (z->key < y->key)
+    y->left = z;
+  else
+    y->right = z;
+  
+  z->left = t->nil;
+  z->right = t->nil;
+  
   return t->root;
 }
 
@@ -55,21 +86,24 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
 
   while (tmp != t->nil)
   {
+    // if found
     if (tmp->key == key)
     {
       return tmp;
     }
-    else if (tmp->key > key)
+    // if root key is bigger than parameter
+    else if ( key < tmp->key )
     {
-      tmp = t->root->left;
+      tmp = tmp->left;
     }
+    // if root key is smaller than parameter
     else
     {
-      tmp = t->root->right;
+      tmp = tmp->right;
     }
   }
   
-  return tmp;
+  return NULL;
 }
 
 node_t *rbtree_min(const rbtree *t) {
@@ -92,7 +126,6 @@ node_t *rbtree_max(const rbtree *t) {
   {
     tmp = tmp->right;
   }
-
   return tmp;
 }
 
@@ -103,5 +136,6 @@ int rbtree_erase(rbtree *t, node_t *p) {
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array
+
   return 0;
 }
