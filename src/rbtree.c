@@ -38,6 +38,77 @@ void delete_rbtree(rbtree *t) {
   free(t);
 }
 
+void left_rotate(rbtree* t, node_t* x){
+  node_t* y = x->right;
+  // rotate left subtree of y to right subtree
+  y->left = x->right;
+  // if left subtree of y isn't vacant, x will be parent of subtree
+  if (y->left != t->nil){
+    y->left->parent = x;
+  }
+  // parent of x will be parent of y
+  y->parent = x->parent;
+  // if x is root node, y will be root node
+  if (x->parent == t->nil)
+    t->root =y;
+  // if x is left child, y will be left child
+  else if (x == x->parent->left)
+    x->parent->left = y;
+  // if x is right child, y will be right child
+  else
+    x->parent->right = y;
+  // x will be left child of y
+  y->left = x;
+  x->parent = y;
+}
+
+// writing yet...
+void right_rotate(rbtree* t, node_t* y){
+  node_t* x = y->left;
+  y->left = x->right;
+  if (x->right != t->nil){
+    x->right->parent = y;
+  }
+  x->parent = y->parent;
+  if (y->parent == t->nil)
+    t->root = x;
+  else if (y == y->parent->right)
+    y->parent->right = x;
+  else
+    y->parent->left = x;
+  x->right = y;
+  y->parent = x;
+}
+
+void rb_insert_fixup(rbtree *t, node_t* z){
+  while ( z->parent->color == RBTREE_RED)
+  {
+    // is parent of z left child? 
+    if (z->parent == z->parent->parent->left){
+      // y is uncle of z
+      node_t* y = z->parent->parent->right;
+      // case 1
+      if (y->color == RBTREE_RED){
+        z->parent->color = RBTREE_BLACK;
+        y->color = RBTREE_BLACK;
+        z->parent->parent->color = RBTREE_RED;
+        z = z->parent->parent;
+      }
+      // case 2
+      else{
+        if (z == z->parent->right){
+          z = z->parent;
+          left_rotate(t,z);
+        }
+        z->parent->color = RBTREE_BLACK;
+        z->parent->parent->color = RBTREE_RED;
+        right_rotate(t,z->parent->parent);
+      }
+    }
+  }
+  
+}
+
 node_t *rbtree_insert(rbtree *t, const key_t key) {
   // create 'new node z' and fill it red
   node_t* z = (node_t*)calloc(1, sizeof(node_t));
