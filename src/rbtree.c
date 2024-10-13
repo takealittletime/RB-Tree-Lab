@@ -33,10 +33,26 @@ rbtree *new_rbtree(void) {
   return p;
 }
 
-void delete_rbtree(rbtree *t) {
-  // reclaim the tree nodes's memory
-  free(t);
+
+void delete_rbtree_nodes(node_t *node, node_t *nil) {
+  if (node != nil) {
+    // reclame left child, right child, and then current node.
+    delete_rbtree_nodes(node->left, nil); 
+    delete_rbtree_nodes(node->right, nil);
+    free(node);
+  }
 }
+
+void delete_rbtree(rbtree *t) {
+  if (t != NULL) {
+    // reclaim all node of tree recursively
+    delete_rbtree_nodes(t->root, t->nil);  // 트리의 모든 노드 해제
+    // reclaim sentinel node, and root node
+    free(t->nil); 
+    free(t);
+  }
+}
+
 
 void left_rotate(rbtree* t, node_t* x){
   node_t* y = x->right;
@@ -62,7 +78,7 @@ void left_rotate(rbtree* t, node_t* x){
   x->parent = y;
 }
 
-// writing yet...
+// reverse of left_rotate
 void right_rotate(rbtree* t, node_t* y){
   node_t* x = y->left;
   y->left = x->right;
@@ -94,19 +110,41 @@ void rb_insert_fixup(rbtree *t, node_t* z){
         z->parent->parent->color = RBTREE_RED;
         z = z->parent->parent;
       }
-      // case 2
       else{
+        // case 2
         if (z == z->parent->right){
           z = z->parent;
           left_rotate(t,z);
         }
+        // case 3
         z->parent->color = RBTREE_BLACK;
         z->parent->parent->color = RBTREE_RED;
         right_rotate(t,z->parent->parent);
       }
     }
+
+    //reverse left-right
+    else {
+      node_t* y = z->parent->parent->left;
+      if (y->color == RBTREE_RED){
+        z->parent->color = RBTREE_BLACK;
+        y->color = RBTREE_BLACK;
+        z->parent->parent->color= RBTREE_RED;
+        z = z->parent->parent;
+      }
+
+      else{
+        if (z==z->parent->left){
+          z = z->parent;
+          right_rotate(t,z);
+        }
+        z->parent->color = RBTREE_BLACK;
+        z->parent->parent->color = RBTREE_RED;
+        left_rotate(t,z->parent->parent);
+      }
+    }
   }
-  
+  t->root->color = RBTREE_BLACK;
 }
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
@@ -148,12 +186,18 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   
   z->left = t->nil;
   z->right = t->nil;
+
+  rb_insert_fixup(t,z);
   
   return t->root;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
   node_t* tmp = t->root;
+
+  // if tree is vacant
+  if (tmp == t->nil)
+    return NULL;
 
   while (tmp != t->nil)
   {
@@ -180,8 +224,13 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
 node_t *rbtree_min(const rbtree *t) {
   // create tmp and put root node
   node_t* tmp = t->root;
+
+  // if tree is vacant
+  if (tmp == t->nil)
+    return NULL;
+
   // just go left till meet nill node
-  while (tmp != t->nil)
+  while (tmp->left != t->nil)
   {
     tmp = tmp->left;
   }
@@ -192,16 +241,44 @@ node_t *rbtree_min(const rbtree *t) {
 node_t *rbtree_max(const rbtree *t) {
   // create tmp and put root node
   node_t* tmp = t->root;
+
+    // if tree is vacant
+  if (tmp == t->nil)
+    return NULL;
+
   // just go right till meet nill node
-  while (tmp != t->nil)
+  while (tmp->right != t->nil)
   {
     tmp = tmp->right;
   }
   return tmp;
 }
 
+void rb_transplant(rbtree *t, node_t* u, node_t* v){
+  if (u->parent == t->nil)
+    t->root = v;
+  else if (u == u->parent->left)
+    u->parent->left = v;
+  else
+    u->parent->right = v;
+  v->parent = u->parent;
+}
+
 int rbtree_erase(rbtree *t, node_t *p) {
-  // TODO: implement erase
+  // node_t *y = p;
+  // if (p->left == t->nil){
+  //   node_t *x = p->right;
+  //   rb_transplant(t,p,p->right);
+  // }
+  // else if (p->right == t->nil){
+  //   node_t*x = p->left;
+  //   rb_transplant(t,p,p->left);
+  // }
+  // else {
+  //   y = rbtree_min(p->right);
+  // }
+
+
   return 0;
 }
 
