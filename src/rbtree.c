@@ -236,6 +236,21 @@ node_t *rbtree_min(const rbtree *t) {
   return tmp;
 }
 
+node_t *min_from_node(rbtree* t, node_t* n){
+  if (n == t->nil)
+    return NULL;
+  
+  node_t* tmp = n;
+  // just go left till meet nill node
+  while (tmp->left != t->nil)
+  {
+    tmp = tmp->left;
+  }
+
+  return tmp;
+  
+}
+
 node_t *rbtree_max(const rbtree *t) {
   // create tmp and put root node
   node_t* tmp = t->root;
@@ -342,7 +357,7 @@ int rbtree_erase(rbtree *t, node_t *p) {
     rb_transplant(t,p,p->left);
   }
   else {
-    y = rbtree_min(p->right);
+    y = min_from_node(t, p->right);
     y_original_color = y->color;
     x = y->right;
     if (y != p->right){
@@ -365,8 +380,38 @@ int rbtree_erase(rbtree *t, node_t *p) {
   return 0;
 }
 
+void to_array_rbtree_node(node_t *node, key_t *arr, node_t *nil){
+  if (node != nil){
+
+  }
+}
+
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
-  // TODO: implement to_array
+  if (t != NULL){
+    to_array_rbtree_node(t->root, arr, t->nil);
+  }
 
   return 0;
 }
+
+/*
+
+void delete_rbtree_nodes(node_t *node, node_t *nil) {
+  if (node != nil) {
+    // reclame left child, right child, and then current node.
+    delete_rbtree_nodes(node->left, nil); 
+    delete_rbtree_nodes(node->right, nil);
+    free(node);
+  }
+}
+
+void delete_rbtree(rbtree *t) {
+  if (t != NULL) {
+    // reclaim all node of tree recursively
+    delete_rbtree_nodes(t->root, t->nil);  // 트리의 모든 노드 해제
+    // reclaim sentinel node, and root node
+    free(t->nil); 
+    free(t);
+  }
+}
+*/
