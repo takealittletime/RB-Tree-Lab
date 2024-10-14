@@ -330,20 +330,21 @@ void rb_erase_fixup(rbtree* t, node_t* x){
 
 int rbtree_erase(rbtree *t, node_t *p) {
   node_t *y = p;
+  node_t *x = NULL;
   color_t y_original_color = y->color;
 
   if (p->left == t->nil){
-    node_t *x = p->right;
+    x = p->right;
     rb_transplant(t,p,p->right);
   }
   else if (p->right == t->nil){
-    node_t*x = p->left;
+    x = p->left;
     rb_transplant(t,p,p->left);
   }
   else {
     y = rbtree_min(p->right);
     y_original_color = y->color;
-    node_t* x = y->right;
+    x = y->right;
     if (y != p->right){
       rb_transplant(t,y,y->right);
       y->right = p->right;
@@ -359,8 +360,7 @@ int rbtree_erase(rbtree *t, node_t *p) {
   }
 
   if (y_original_color == RBTREE_BLACK)
-    //rb_erase_fixup(t,x);
-
+    rb_erase_fixup(t,x);
 
   return 0;
 }
