@@ -3,23 +3,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-//tmp/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// typedef enum { RBTREE_RED, RBTREE_BLACK } color_t;
-
-// typedef int key_t;
-
-// typedef struct node_t {
-//   color_t color;
-//   key_t key;
-//   struct node_t *parent, *left, *right;
-// } node_t;
-
-// typedef struct {
-//   node_t *root;
-//   node_t *nil;  // for sentinel
-// } rbtree;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 rbtree *new_rbtree(void) {
   // make new rbtree
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
@@ -58,7 +41,7 @@ void delete_rbtree(rbtree *t) {
 void left_rotate(rbtree* t, node_t* x){
   node_t* y = x->right;
   // rotate left subtree of y to right subtree
-  y->left = x->right;
+  x->right = y->left;
   // if left subtree of y isn't vacant, x will be parent of subtree
   if (y->left != t->nil){
     y->left->parent = x;
@@ -188,7 +171,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
 
   rb_insert_fixup(t,z);
   
-  return t->root;
+  return z;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
@@ -280,7 +263,7 @@ void rb_transplant(rbtree *t, node_t* u, node_t* v){
 }
 
 void rb_erase_fixup(rbtree* t, node_t* x){
-  while (x != t->root && x->color == RBTREE_BLACK)
+  while (x != t->root && (x == t->nil || x->color == RBTREE_BLACK))
   {
     if (x == x->parent->left){
       node_t* w = x->parent->right;
@@ -367,7 +350,9 @@ int rbtree_erase(rbtree *t, node_t *p) {
       y->right->parent = y;
     }
     else{
-      x->parent = y;
+      if (y->parent != t->nil)
+        x->parent = y;
+        // claude says x->parent = y->parent;
     }
     rb_transplant(t,p,y);
     y->left = p->left;
@@ -377,6 +362,8 @@ int rbtree_erase(rbtree *t, node_t *p) {
 
   if (y_original_color == RBTREE_BLACK)
     rb_erase_fixup(t,x);
+  
+  free(p);
 
   return 0;
 }

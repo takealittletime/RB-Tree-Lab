@@ -361,7 +361,7 @@ void test_find_erase_rand(const size_t n, const unsigned int seed) {
     arr[i] = rand();
   }
 
-  test_find_erase(t, arr, n);
+  test_find_erase(t, arr, n); 
 
   free(arr);
   delete_rbtree(t);

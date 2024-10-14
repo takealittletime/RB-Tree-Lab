@@ -10,6 +10,9 @@ build: ## Build executables
 
 test:
 test: ## Test rbtree implementation
+	# added make clean for every test
+	$(MAKE) -C src clean
+	$(MAKE) -C test clean
 	$(MAKE) -C test test
 	
 clean:
