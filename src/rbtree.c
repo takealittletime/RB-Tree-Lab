@@ -1,6 +1,7 @@
 #include "rbtree.h"
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 //tmp/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // typedef enum { RBTREE_RED, RBTREE_BLACK } color_t;
@@ -380,38 +381,31 @@ int rbtree_erase(rbtree *t, node_t *p) {
   return 0;
 }
 
-void to_array_rbtree_node(node_t *node, key_t *arr, node_t *nil){
-  if (node != nil){
-
+void to_array_rbtree_node(node_t *node, key_t *arr, node_t *nil, int *index, size_t n, bool *overflow) {
+  if (node != nil && !(*overflow)) {
+    to_array_rbtree_node(node->left, arr, nil, index, n, overflow);
+    
+    if (*index < n) {
+      arr[*index] = node->key;
+      (*index)++;
+    } else {
+      *overflow = true;
+      return;
+    }
+    
+    to_array_rbtree_node(node->right, arr, nil, index, n, overflow);
   }
 }
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
-  if (t != NULL){
-    to_array_rbtree_node(t->root, arr, t->nil);
+  if (t == NULL || arr == NULL || n == 0) {
+    return -1;
   }
 
-  return 0;
-}
+  int index = 0;
+  bool overflow = false;
+  to_array_rbtree_node(t->root, arr, t->nil, &index, n, &overflow);
 
-/*
-
-void delete_rbtree_nodes(node_t *node, node_t *nil) {
-  if (node != nil) {
-    // reclame left child, right child, and then current node.
-    delete_rbtree_nodes(node->left, nil); 
-    delete_rbtree_nodes(node->right, nil);
-    free(node);
-  }
+  // if overflow happens, return -1, else return size of arr.
+  return overflow ? -1 : index; 
 }
-
-void delete_rbtree(rbtree *t) {
-  if (t != NULL) {
-    // reclaim all node of tree recursively
-    delete_rbtree_nodes(t->root, t->nil);  // 트리의 모든 노드 해제
-    // reclaim sentinel node, and root node
-    free(t->nil); 
-    free(t);
-  }
-}
-*/
