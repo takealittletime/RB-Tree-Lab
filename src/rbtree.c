@@ -123,7 +123,8 @@ void rb_insert_fixup(rbtree *t, node_t* z){
       }
     }
 
-    //reverse left-right
+    // reverse left-right
+    // (when parent of z is right child)
     else {
       node_t* y = z->parent->parent->left;
       if (y->color == RBTREE_RED){
@@ -174,8 +175,8 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
     }
   }
 
-  // if tree was vacant
   z->parent = y;
+  // if tree was vacant
   if (y == t->nil)
     t->root = z;
 
@@ -183,9 +184,6 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
     y->left = z;
   else
     y->right = z;
-  
-  z->left = t->nil;
-  z->right = t->nil;
 
   rb_insert_fixup(t,z);
   
@@ -254,6 +252,7 @@ node_t *rbtree_max(const rbtree *t) {
   return tmp;
 }
 
+// transplant v node to place of u node
 void rb_transplant(rbtree *t, node_t* u, node_t* v){
   if (u->parent == t->nil)
     t->root = v;
@@ -264,19 +263,103 @@ void rb_transplant(rbtree *t, node_t* u, node_t* v){
   v->parent = u->parent;
 }
 
+void rb_erase_fixup(rbtree* t, node_t* x){
+  while (x != t->root && x->color == RBTREE_BLACK)
+  {
+    if (x == x->parent->left){
+      node_t* w = x->parent->right;
+      // case 1
+      if (w->color == RBTREE_RED){
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        left_rotate(t,x->parent);
+        w = x->parent->right;
+      }
+      // case 2
+      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK){
+        w->color = RBTREE_RED;
+        x = x->parent;
+      }
+      // case 3
+      else{
+        if (w->right->color == RBTREE_BLACK){
+          w->left->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          right_rotate(t,w);
+          w = x->parent->right;
+        }
+        // case 4
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->right->color = RBTREE_BLACK;
+        left_rotate(t,x->parent);
+        x = t->root;
+      }
+    }
+
+    // reverse left <-> right
+    else{
+      node_t* w = x->parent->left;
+      if (w->color == RBTREE_RED){
+        w->color = RBTREE_BLACK;
+        x->parent->color = RBTREE_RED;
+        right_rotate(t,x->parent);
+        w = x->parent->left;
+      }
+      if (w->right->color == RBTREE_BLACK && w->left->color == RBTREE_BLACK){
+        w->color = RBTREE_RED;
+        x = x->parent;
+      }
+      else{
+        if (w->left->color == RBTREE_BLACK){
+          w->right->color = RBTREE_BLACK;
+          w->color = RBTREE_RED;
+          left_rotate(t,w);
+          w = x->parent->left;
+        }
+        w->color = x->parent->color;
+        x->parent->color = RBTREE_BLACK;
+        w->left->color = RBTREE_BLACK;
+        right_rotate(t,x->parent);
+        x = t->root;
+      }
+    }
+  }
+  x->color = RBTREE_BLACK;
+}
+
 int rbtree_erase(rbtree *t, node_t *p) {
-  // node_t *y = p;
-  // if (p->left == t->nil){
-  //   node_t *x = p->right;
-  //   rb_transplant(t,p,p->right);
-  // }
-  // else if (p->right == t->nil){
-  //   node_t*x = p->left;
-  //   rb_transplant(t,p,p->left);
-  // }
-  // else {
-  //   y = rbtree_min(p->right);
-  // }
+  node_t *y = p;
+  color_t y_original_color = y->color;
+
+  if (p->left == t->nil){
+    node_t *x = p->right;
+    rb_transplant(t,p,p->right);
+  }
+  else if (p->right == t->nil){
+    node_t*x = p->left;
+    rb_transplant(t,p,p->left);
+  }
+  else {
+    y = rbtree_min(p->right);
+    y_original_color = y->color;
+    node_t* x = y->right;
+    if (y != p->right){
+      rb_transplant(t,y,y->right);
+      y->right = p->right;
+      y->right->parent = y;
+    }
+    else{
+      x->parent = y;
+    }
+    rb_transplant(t,p,y);
+    y->left = p->left;
+    y->left->parent = y;
+    y->color = p->color;
+  }
+
+  if (y_original_color == RBTREE_BLACK)
+    //rb_erase_fixup(t,x);
 
 
   return 0;
